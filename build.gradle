@@ -1,0 +1,47 @@
+group 'com.github.millasa'
+version '1.0'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'info.cukes', name: 'gherkin', version: '2.12.2'
+    compile group: 'io.cucumber', name: 'gherkin', version: '5.0.0'
+    compile 'org.apache.commons:commons-csv:1.5'
+    compile group: 'commons-io', name: 'commons-io', version: '2.6'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.3.1'
+}
+
+def mainClassName = 'com.github.millasa.FeaturesToXrayCSVConverter'
+
+jar {
+    manifest {
+        attributes "Main-Class": mainClassName
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+task generateBatFile {
+    doLast {
+        file("$buildDir/libs/cucumber-to-csv-converter.bat").text = "java -jar ${jar.archiveName} %1"
+    }
+}
+
+build.dependsOn generateBatFile
+
+task run(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = mainClassName
+    args = ['D:\\cukes\\ows-transcoding']
+}
